@@ -40,6 +40,7 @@ const CAMPOS_ACTIVIDAD = [
 ];
 
 const DECISIONES = [
+  ["Inicio con 3 accesos directos grandes a los módulos, sin listas secundarias", "Heurística 8 — Diseño estético y minimalista", "El usuario decide de inmediato qué tarea hacer, sin interpretar listas antes de poder actuar."],
   ["Barra de estado de conexión y sincronización siempre visible", "Heurística 1 — Visibilidad del estado del sistema", "Saber en todo momento si el trabajo está seguro."],
   ["Código de caso/actuación autogenerado, de solo lectura", "Prevención de error humano (Norman)", "Evita duplicados y errores de tipeo en identificadores."],
   ["Lenguaje simple en formularios, sin jerga jurídica innecesaria", "Heurística 2 — Coincidencia entre el sistema y el mundo real", "Usuario sin experiencia frecuente en apps digitales."],
