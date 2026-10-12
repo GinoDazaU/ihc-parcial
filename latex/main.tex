@@ -1,0 +1,354 @@
+% ============================================================
+% Justicia Cercana — Diseño del prototipo (CS2H01, Pregunta 1)
+% ============================================================
+% ANTES DE COMPILAR:
+%  1. Completa \nombreEstudiante y \codigoEstudiante abajo.
+%  2. Coloca en img/: logo.png y las capturas listadas junto a
+%     cada \includegraphics (los nombres ya están definidos).
+%  3. Compila con pdflatex (dos veces si algo se ve desalineado):
+%     pdflatex main.tex
+% ============================================================
+
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-noindentfirst]{babel}
+\usepackage{lmodern}
+\usepackage[margin=2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\usepackage{csquotes}
+\usepackage{placeins}
+\MakeOuterQuote{"}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\renewcommand{\arraystretch}{1.2}
+
+% --- Datos a completar ---
+\newcommand{\nombreEstudiante}{NOMBRE APELLIDO}
+\newcommand{\codigoEstudiante}{Código de estudiante}
+
+% Figura a prueba de archivos faltantes: si img/#1 no existe, muestra un
+% aviso en vez de detener la compilación de todo el documento.
+\newcommand{\safefig}[2]{%
+  \begin{figure}[!htbp]
+    \centering
+    \IfFileExists{img/#1}{%
+      \includegraphics[width=0.85\linewidth,height=0.72\textheight,keepaspectratio]{img/#1}%
+    }{%
+      \fbox{\parbox[c][5cm][c]{0.85\linewidth}{\centering\itshape Falta \texttt{img/#1}}}%
+    }
+    \caption{#2}
+  \end{figure}%
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Justicia Cercana --- Prototipo de interfaz}
+\fancyhead[R]{CS2H01 \textperiodcentered\ Human Computer Interaction}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\title{Justicia Cercana}
+\author{\nombreEstudiante}
+\date{\today}
+
+\begin{document}
+
+% ---------------- Portada ----------------
+\begin{titlepage}
+\thispagestyle{empty}
+\begin{center}
+\IfFileExists{img/logo.png}{\includegraphics[width=3.2cm]{img/logo.png}}{\fbox{\parbox[c][2.5cm][c]{3.2cm}{\centering\itshape Falta \texttt{img/logo.png}}}}\\[1.2cm]
+
+{\large UTEC --- Departamento de Ciencia de la Computación}\\[0.2cm]
+{\large CS2H01 --- Human Computer Interaction}\\[0.2cm]
+{\large Examen Parcial --- Pregunta 1: Diseño del prototipo}\\[2.2cm]
+
+{\Huge \textbf{Justicia Cercana}}\\[0.5cm]
+{\Large Prototipo de plataforma para juzgados de paz rurales}\\[2.5cm]
+
+{\large \nombreEstudiante}\\
+{\large \codigoEstudiante}\\[0.5cm]
+{\large \today}
+
+\vfill
+{\small Prototipo interactivo construido en React + Tailwind CSS.}\\
+{\small \url{https://ihc-parcial-gjdy.vercel.app/}}
+\end{center}
+\end{titlepage}
+
+\begin{center}
+\fbox{\parbox{0.85\linewidth}{\centering
+\textbf{Prototipo interactivo en línea:}\\
+\url{https://ihc-parcial-gjdy.vercel.app/}
+}}
+\end{center}
+\vspace{0.3cm}
+
+% ---------------- Contexto del caso ----------------
+\FloatBarrier
+\section{Contexto del caso}
+
+\enquote{Justicia Cercana} plantea el diseño de una aplicación para tableta de 10 pulgadas dirigida a
+jueces y juezas de paz que atienden comunidades rurales. Su trabajo comprende recibir a las personas,
+registrar casos, dejar constancia de acuerdos o actuaciones notariales, y organizar las actividades que
+deben realizar después. Hoy gran parte de esa información se lleva en cuadernos, formularios impresos o
+archivos digitales sueltos, lo que provoca duplicidad de datos, dificultad para encontrar un registro
+anterior y fechas importantes olvidadas.
+
+El diseño de este prototipo se construyó a partir de tres condiciones reales que el propio caso describe,
+y que enmarcan cada decisión tomada:
+
+\begin{itemize}[leftmargin=1.3em]
+  \item \textbf{Bajo alfabetismo digital.} Los jueces de paz no necesariamente tienen experiencia usando
+  aplicaciones complejas; cada tarea debe guiar al usuario, usar términos familiares y evitar pasos
+  innecesarios.
+  \item \textbf{Conectividad intermitente como condición normal.} Algunos trabajan en zonas rurales con
+  conectividad limitada o inestable y pueden pasar varias horas sin acceso a Internet. La aplicación debe
+  permitir seguir trabajando sin perder lo registrado, e indicar con claridad cuándo la información está
+  guardada localmente y pendiente de sincronización.
+  \item \textbf{Dispositivo táctil de 10 pulgadas.} El diseño debe adaptarse al uso táctil en tableta y,
+  además, permitir su uso desde una computadora con conexión a Internet.
+\end{itemize}
+
+Sobre estas tres condiciones se construyeron los tres módulos que pide el caso: registro de casos
+judiciales, registro de actuaciones notariales, y agenda o calendario.
+
+% ---------------- Enfoque general ----------------
+\FloatBarrier
+\section{Enfoque general del prototipo}
+
+A diferencia de un mockup estático, este prototipo se construyó como una aplicación web funcional (React
+más Tailwind CSS), navegable de principio a fin: permite crear, listar, consultar y editar información real
+en cada uno de los tres módulos, y simula de forma interactiva el comportamiento de guardado local y
+sincronización que exige el enunciado.
+
+\safefig{01-inicio.png}{Pantalla de inicio, con tres accesos directos a los módulos principales.}
+
+La pantalla de inicio evita sobrecargar al usuario con paneles secundarios: muestra únicamente los tres
+accesos a los módulos, con un conteo breve de contexto en cada uno, y un aviso de sincronización pendiente
+cuando corresponde. Esto reduce la carga cognitiva del primer contacto (heurística de diseño estético y
+minimalista): la jueza decide de inmediato qué tarea realizar, en vez de interpretar listas antes de poder
+actuar.
+
+% ---------------- Módulo 1 ----------------
+\FloatBarrier
+\section{Módulo 1: Registro de casos judiciales}
+
+La jueza necesita registrar un nuevo caso, consultar los casos existentes y actualizar su avance. El diseño
+facilita identificar rápidamente el estado de cada caso y reconocer cuáles requieren atención.
+
+{\small
+\begin{longtable}{@{}p{4.4cm}p{2.6cm}p{8.2cm}@{}}
+\caption{Campos del módulo de casos judiciales.}\\
+\toprule
+\textbf{Campo} & \textbf{¿Obligatorio?} & \textbf{Validación / criterio} \\
+\midrule
+\endfirsthead
+\multicolumn{3}{l}{\textit{(continuación)}} \\
+\toprule
+\textbf{Campo} & \textbf{¿Obligatorio?} & \textbf{Validación / criterio} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+Código del caso & --- & Autogenerado por la aplicación, de solo lectura. \\
+Tipo de conflicto o materia & Obligatorio & Selección de lista controlada. \\
+Descripción del motivo & Obligatorio & Mínimo 10 caracteres. \\
+Estado & Obligatorio & En trámite / Concluido / Suspendido. Por defecto \enquote{En trámite}. \\
+Observaciones & Opcional & --- \\
+Partes: nombres y apellidos & Obligatorio & Al menos una parte. \\
+Partes: documento de identidad & Opcional & \enquote{Si corresponde}, según el propio caso. \\
+Partes: teléfono & Opcional & \enquote{Si se dispone}, puede no existir en zona rural. \\
+Partes: dirección/comunidad & Obligatorio & Acepta solo el nombre de la comunidad. \\
+Partes: rol en el caso & Obligatorio & Solicitante / Invitado / Testigo / Otro. \\
+Seguimiento: fecha y descripción & Obligatorio al agregar & No se exige tener seguimiento para guardar el caso. \\
+Seguimiento: resultado o acuerdo & Condicional & Obligatorio solo si el estado pasa a \enquote{Concluido}. \\
+\end{longtable}
+}
+
+\safefig{02-casos-lista.png}{Listado de casos. El estado y el estado de sincronización se muestran con color, ícono y texto a la vez, nunca solo con color, por accesibilidad.}
+
+\safefig{03-caso-nuevo.png}{Formulario de nuevo caso. Los campos obligatorios llevan asterisco; los opcionales, la etiqueta \enquote{(opcional)} explícita, de modo que un dato que no existe en campo rural nunca bloquea el registro.}
+
+\safefig{04-caso-detalle.png}{Detalle de un caso, con la línea de tiempo de seguimiento. Marcar un caso como concluido exige registrar el resultado o acuerdo alcanzado y pide confirmación antes de aplicarse, evitando que una acción poco frecuente y difícil de revertir ocurra por error.}
+
+% ---------------- Módulo 2 ----------------
+\FloatBarrier
+\section{Módulo 2: Registro de actuaciones notariales}
+
+La jueza necesita dejar constancia de una actuación notarial y localizarla después. El formulario explica
+con claridad qué información se requiere, evitando términos jurídicos o técnicos innecesarios.
+
+{\small
+\begin{longtable}{@{}p{4.4cm}p{2.6cm}p{8.2cm}@{}}
+\caption{Campos del módulo de actuaciones notariales.}\\
+\toprule
+\textbf{Campo} & \textbf{¿Obligatorio?} & \textbf{Validación / criterio} \\
+\midrule
+\endfirsthead
+\multicolumn{3}{l}{\textit{(continuación)}} \\
+\toprule
+\textbf{Campo} & \textbf{¿Obligatorio?} & \textbf{Validación / criterio} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+Código de registro & --- & Autogenerado por la aplicación, de solo lectura. \\
+Tipo de actuación notarial & Obligatorio & Selección con lenguaje simple, sin jerga innecesaria. \\
+Descripción o asunto & Obligatorio & Mínimo 10 caracteres. \\
+Estado de la atención & Obligatorio & Pendiente / Atendida / Concluida. Por defecto \enquote{Pendiente}. \\
+Fecha de atención & Opcional & Puede definirse después de la solicitud. \\
+Personas: nombre & Obligatorio & Al menos una persona. \\
+Personas: documento / teléfono & Opcional & \enquote{Si corresponde} / \enquote{si se dispone}. \\
+Personas: dirección/comunidad & Obligatorio & Mismo criterio que en Casos. \\
+Personas: participación & Obligatorio & Solicitante / Declarante / Testigo. \\
+Resultado de la actuación & Condicional & Obligatorio solo si el estado es \enquote{Concluida}. \\
+Documento adjunto o referencia & Opcional & Acepta referencia a un archivo físico. \\
+\end{longtable}
+}
+
+\safefig{05-notarial-lista.png}{Listado de actuaciones notariales. Reutiliza la misma estructura visual y de navegación que el módulo de casos (heurística de consistencia y estándares), de modo que lo aprendido en un módulo se transfiere directamente al otro.}
+
+El resultado de la actuación solo se exige cuando el estado pasa a \enquote{Concluida}; el resto del tiempo
+el campo queda disponible pero no obligatorio, evitando registros a medio completar por exigir un dato que
+aún no existe.
+
+% ---------------- Módulo 3 ----------------
+\FloatBarrier
+\section{Módulo 3: Agenda o calendario}
+
+La jueza necesita organizar audiencias, reuniones, visitas y otras actividades, y reconocer con facilidad si
+tiene tareas próximas.
+
+{\small
+\begin{longtable}{@{}p{4.4cm}p{2.6cm}p{8.2cm}@{}}
+\caption{Campos del módulo de agenda.}\\
+\toprule
+\textbf{Campo} & \textbf{¿Obligatorio?} & \textbf{Validación / criterio} \\
+\midrule
+\endfirsthead
+\multicolumn{3}{l}{\textit{(continuación)}} \\
+\toprule
+\textbf{Campo} & \textbf{¿Obligatorio?} & \textbf{Validación / criterio} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+Título de la actividad & Obligatorio & --- \\
+Fecha & Obligatorio & --- \\
+Hora de inicio / término & Opcional & Permite actividades sin horario fijo. \\
+Lugar o comunidad & Obligatorio & Necesario para planificar el desplazamiento. \\
+Descripción / motivo & Opcional & --- \\
+Estado & Obligatorio & Programada / Realizada / Cancelada. \\
+Categoría & Obligatorio & Define color e ícono; nunca solo color. \\
+\end{longtable}
+}
+
+\safefig{06-agenda-mes.png}{Vista mensual de la agenda. El día actual queda resaltado y cada actividad muestra una etiqueta de color por categoría siempre acompañada de texto. Se agregó un buscador de fecha específica junto a la navegación por mes, para no depender de desplazarse mes a mes cuando se conoce la fecha exacta buscada.}
+
+% ---------------- Sin conexión ----------------
+\FloatBarrier
+\section{Funcionamiento sin conexión}
+
+\safefig{07-sin-conexion.png}{Barra superior en estado \enquote{Sin conexión}, con el registro trabajando exclusivamente en el dispositivo.}
+
+Todo registro nuevo o editado se guarda de inmediato en el dispositivo. Si hay conexión, queda marcado como
+\enquote{Sincronizado}; si no la hay, se marca como \enquote{Guardado en el dispositivo} (pendiente), sin
+bloquear ni interrumpir el trabajo de la jueza. Apenas la aplicación detecta que la conexión volvió,
+sincroniza los pendientes de forma automática, sin exigir que la jueza recuerde hacerlo manualmente ---en la
+práctica, ella no necesariamente sabrá en qué momento exacto la tableta recuperó señal. El botón
+\enquote{Sincronizar ahora} se mantiene visible como control manual de respaldo, y la hora de la última
+sincronización queda siempre a la vista en la barra superior, para que la confianza en el estado de los
+datos no dependa de la memoria del usuario. Al sincronizar, la aplicación confirma cuántos registros se
+sincronizaron correctamente, tal como lo exige el enunciado del caso.
+
+% ---------------- Confirmación de cambios ----------------
+\FloatBarrier
+\section{Confirmación de cambios al editar}
+
+\safefig{08-confirmar-cambios.png}{Diálogo mostrado al guardar la edición de un registro existente, con el valor anterior y el nuevo de cada campo modificado.}
+
+Cuando se permite editar información, el enunciado exige que la interfaz indique qué datos se están
+modificando y confirme que los cambios quedaron guardados. Por eso, al editar cualquier registro existente,
+antes de aplicar el cambio la aplicación muestra un resumen con cada campo modificado (valor anterior y
+valor nuevo) y exige una confirmación explícita (\enquote{Confirmar y guardar}) o permite volver a editar
+(\enquote{Seguir editando}). Si no se detecta ningún cambio real, la aplicación lo indica y no interrumpe
+con un diálogo innecesario.
+
+% ---------------- Principios y heurísticas ----------------
+\FloatBarrier
+\section{Principios de diseño, heurísticas y factores humanos aplicados}
+
+Cada decisión de diseño relevante del prototipo se documenta también dentro de la propia aplicación
+(pantalla \enquote{Justificación de diseño}), relacionándola con un principio de Norman, una heurística de
+usabilidad de Nielsen o un factor humano concreto, y explicando qué necesidad del usuario atiende:
+
+{\small
+\begin{longtable}{@{}p{5cm}p{4.3cm}p{6.2cm}@{}}
+\caption{Principios, heurísticas y factores humanos aplicados en el prototipo.}\\
+\toprule
+\textbf{Decisión de diseño} & \textbf{Principio / heurística / factor humano} & \textbf{Necesidad que atiende} \\
+\midrule
+\endfirsthead
+\multicolumn{3}{l}{\textit{(continuación)}} \\
+\toprule
+\textbf{Decisión de diseño} & \textbf{Principio / heurística / factor humano} & \textbf{Necesidad que atiende} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+Inicio con 3 accesos directos grandes a los módulos, sin listas secundarias & Heurística 8 --- Diseño estético y minimalista & El usuario decide de inmediato qué tarea hacer, sin interpretar listas antes de poder actuar. \\
+Barra de estado de conexión y sincronización siempre visible & Heurística 1 --- Visibilidad del estado del sistema & Saber en todo momento si el trabajo está seguro. \\
+Código de caso/actuación autogenerado, de solo lectura & Prevención de error humano (Norman) & Evita duplicados y errores de tipeo en identificadores. \\
+Lenguaje simple en formularios, sin jerga jurídica innecesaria & Heurística 2 --- Coincidencia entre el sistema y el mundo real & Usuario sin experiencia frecuente en apps digitales. \\
+Asterisco + etiqueta \enquote{(opcional)} explícita en cada campo & Heurística 5 --- Prevención de errores + Visibilidad (Norman) & Evita bloqueos por datos que no existen en zona rural. \\
+Validación en línea con mensaje específico antes de enviar & Heurística 9 --- Ayudar a reconocer y recuperarse de errores & Reduce frustración frente a intentos repetidos a ciegas. \\
+Confirmación visible (\enquote{toast}) tras guardar cada registro & Feedback (Norman) & Cumple lo pedido explícitamente por el caso. \\
+Estado con color + ícono + texto, nunca solo color & Accesibilidad (daltonismo) + reconocimiento vs.\ recuerdo & Reconocer el estado de un caso de un vistazo. \\
+Ícono siempre acompañado de texto en toda acción & Heurística 6 --- Reconocimiento en vez de recuerdo & El usuario no memoriza símbolos abstractos. \\
+Botón \enquote{+ Nuevo} grande y fijo por módulo & Affordance clara + Mapping directo & La acción más frecuente siempre alcanzable con el pulgar. \\
+Confirmación con opción de cancelar antes de concluir un caso & Heurística 3 --- Control y libertad del usuario & Previene una acción difícil de revertir por error. \\
+Al editar, diálogo que lista los campos modificados (antes $\rightarrow$ después) antes de guardar & Visibilidad del estado + Heurística 3 --- Control y libertad del usuario & Cumple lo pedido explícitamente: indicar qué datos se están modificando, no solo confirmar al final. \\
+Misma estructura de navegación y formularios en los 3 módulos & Heurística 4 --- Consistencia y estándares & El modelo mental de un módulo sirve para los otros dos. \\
+Estados vacíos con instrucción, nunca pantalla en blanco & Guía activa ante la incertidumbre & Reduce la ansiedad del primer uso. \\
+Tipografía grande, alto contraste, objetivos táctiles amplios & Factor humano: uso táctil, exteriores con sol & Legibilidad y precisión de toque en campo. \\
+Navegación lateral fija pensada para tableta en horizontal & Factor humano: tamaño y orientación real del dispositivo & Aprovecha el espacio de 10 pulgadas sin saturarlo. \\
+\enquote{Sincronizar ahora} con resultado explícito de éxito & Visibilidad del estado + literal del caso & Confirma si el proceso se completó correctamente. \\
+Badge ámbar \enquote{Guardado en el dispositivo} vs.\ verde \enquote{Sincronizado} & Visibilidad + reduce carga de memoria & El usuario nunca tiene que adivinar si algo se sincronizó. \\
+Sincronización automática al recuperar conexión + botón manual de respaldo & Automatización sin perder control (Heurística 3) & No depende de que la jueza recuerde sincronizar manualmente. \\
+Hora de la última sincronización siempre visible en la barra superior & Heurística 1 --- Visibilidad del estado del sistema & Confianza en que la información está al día, sin tener que preguntarse cuándo se guardó. \\
+\end{longtable}
+}
+
+% ---------------- Limitaciones ----------------
+\FloatBarrier
+\section{Limitaciones del prototipo}
+
+\begin{itemize}[leftmargin=1.3em]
+  \item No hay autenticación real ni backend: la sincronización es simulada.
+  \item No se implementa carga real de archivos; los documentos quedan como referencia de nombre.
+  \item El acceso desde computadora reutiliza el mismo diseño responsivo, sin un layout de escritorio dedicado.
+  \item No se realizaron pruebas de usabilidad con usuarios reales.
+\end{itemize}
+
+% ---------------- Conclusión ----------------
+\FloatBarrier
+\section{Conclusión}
+
+El prototipo cubre los tres módulos pedidos por el caso, permite trabajar sin conexión indicando con
+claridad el estado de cada registro, y documenta explícitamente el principio o heurística detrás de cada
+decisión de diseño. Las decisiones priorizan de forma sistemática la condición real de uso descrita en el
+enunciado: una persona con baja familiaridad con aplicaciones digitales, operando desde una tableta táctil,
+en un entorno donde la conexión a Internet es la excepción y no la norma.
+
+\end{document}
